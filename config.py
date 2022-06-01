@@ -11,4 +11,4 @@ model_path = './model.h5'
 
 BATCH_SIZE = 512
 hidden_dim = 16
-epochs = 1
+epochs = 40
