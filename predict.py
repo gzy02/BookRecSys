@@ -32,7 +32,7 @@ def chunks(l, n):
         yield l[i:i + n]
 
 
-BATCH_SIZE = 1
+BATCH_SIZE = 512
 f = open(config.submit_data_path, 'w', encoding='utf-8')
 f.write("user_id,item_id\n")
 for user_id in user_for_test:
@@ -40,13 +40,12 @@ for user_id in user_for_test:
     user_visited_items = traindataset.user_book_map[user_id]
     items_for_predict = list(
         set(range(traindataset.book_nums)) - set(user_visited_items))
-    #items_for_predict = np.array(items_for_predict).reshape(1, -1)
     results = []
 
     for batch in chunks(items_for_predict, BATCH_SIZE):
         user = torch.full([len(batch)], user_id).to(torch.int64).to(device)
-        batch = torch.Tensor(batch).to(dtype=torch.int64).to(device)
-        result = model(user, batch).view(-1).detach().cpu()
+        item = torch.Tensor(batch).to(dtype=torch.int64).to(device)
+        result = model(user, item).view(-1).detach().cpu()
         results.append(result)
 
     results = torch.cat(results, dim=-1)

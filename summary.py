@@ -1,3 +1,5 @@
+#改进了原先的summary 使其支持Embedding层的print
+
 import torch
 import torch.nn as nn
 from torch.autograd import Variable

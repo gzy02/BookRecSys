@@ -7,45 +7,43 @@
 import config
 import numpy as np
 import pandas as pd
-
+import pickle
 import torch
-from torch.utils.data import Dataset, DataLoader
-
+from torch.utils.data import DataLoader
 import os
-#%% [2]
 
 BATCH_SIZE = config.BATCH_SIZE
 hidden_dim = config.hidden_dim
 epochs = config.epochs
+mlp_layer_num = config.mlp_layer_num
+dropout = config.dropout
+weight_decay = config.weight_decay
+learning_rate = config.learning_rate
+
 device = torch.device('cuda:0') if torch.cuda.is_available() else torch.device(
     'cpu')
 print(device)
-# %%[3]
-# 1.数据准备
-#1.1 数据说明
-#1.2 数据预处理
 
-#
-# 1.1 加载数据
-#观察样本数量和稀疏度。
 train_data_path = config.train_data_path
 df = pd.read_csv(train_data_path)
 print('共{}个用户，{}本图书，{}条记录'.format(
     max(df['user_id']) + 1,
     max(df['item_id']) + 1, len(df)))
-df.head()
 
-import tqdm
-from Goodbooks import Goodbooks
-
-# %% [6]
-import pickle
+# %%
+# 数据预处理
+# 构建Dataset类
+# 构建负样本
+# 划分测试集与验证集
+# 构建对应的Dataloader
+#
 #建立训练和验证dataloader
+from Goodbooks import Goodbooks
 
 traindataset_path = config.traindataset_path
 validdataset_path = config.validdataset_path
 user_book_map_path = config.user_book_map_path
-
+#不存在就建立，否则直接load
 if not os.path.exists(user_book_map_path):
     user_book_map = {}
     for i in range(max(df['user_id']) + 1):
@@ -61,6 +59,7 @@ else:
     with open(user_book_map_path, "rb") as fp:
         user_book_map = pickle.load(fp)
 
+#不存在就建立，否则直接load
 if not os.path.exists(traindataset_path):
     traindataset = Goodbooks(df, user_book_map, 'training')
 
@@ -70,6 +69,7 @@ else:
     with open(traindataset_path, "rb") as fp:
         traindataset = pickle.load(fp)
 
+#不存在就建立，否则直接load
 if not os.path.exists(validdataset_path):
     validdataset = Goodbooks(df, user_book_map, 'validation')
 
@@ -78,8 +78,6 @@ if not os.path.exists(validdataset_path):
 else:
     with open(validdataset_path, "rb") as fp:
         validdataset = pickle.load(fp)
-
-print("load pkl success")
 
 trainloader = DataLoader(traindataset,
                          batch_size=BATCH_SIZE,
@@ -92,42 +90,42 @@ validloader = DataLoader(validdataset,
                          drop_last=False,
                          num_workers=0)
 
-# %% [7]
-#2.模型构建
-#NCF模型由GMF部分和MLP部分组成。
-#
-#Embedding Layer: 嵌入层，将稀疏的one-hot用户/物品向量转化为稠密的低维向量
-#GMF Layer: 通过传统的矩阵分解算法，将以用户和物品的嵌入向量做内积。有效地提取浅层特征。
-#MLP Layer: 通过n层全连接层，提取深层特征。
-#Concatenation Layer: 将GMF和MLP输出的结果做concat，结合其中的深层和浅层信息。
-#Output Layer: 输出层，输出用户-物品对的最终评分。
-# 构建模型
-# %% [8]
-#3.模型训练&4.模型评估
+print("Load dataset success")
+print("Train dataset user_nums:", traindataset.user_nums)
+print("Train dataset book_nums:", traindataset.book_nums)
+print("Valid dataset user_nums:", validdataset.user_nums)
+print("Valid dataset book_nums:", validdataset.book_nums)
+
+# %%
+#模型训练&评估
 #训练策略
 #训练模型，固定步数会计算准确率
 #模型保存
 #可视化训练过程，对比训练集和验证集的准确率
+
 from NCFModel import NCFModel
 
-model = NCFModel(hidden_dim, traindataset.user_nums,
-                 traindataset.book_nums).to(device)
-if config.is_load_model:
+model = NCFModel(hidden_dim, traindataset.user_nums, traindataset.book_nums,
+                 mlp_layer_num, dropout).to(device)
+if config.is_load_model:  #如果导入已经训练了的模型
     model.load_state_dict(torch.load(config.load_model_path))
 
-optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
-crit = torch.nn.BCELoss()
+optimizer = torch.optim.Adam(model.parameters(),
+                             lr=learning_rate,
+                             weight_decay=weight_decay)
+crit = torch.nn.BCELoss()  #损失函数：BCELoss
 
 loss_for_plot = []
 hits_for_plot = []
 
 for epoch in range(epochs):
+    #在训练集上训练
     losses = []
-    for index, data in enumerate(trainloader):
+    for data in trainloader:
         user, item, label = data
-        user, item, label = user.to(device), item.to(device), label.to(
-            device).float()
-        y_ = model(user, item).squeeze()
+        x = torch.stack((user, item), dim=1)
+        x, label = x.to(device), label.to(device).float()
+        y_ = model(x).squeeze()
 
         loss = crit(y_, label)
         optimizer.zero_grad()
@@ -136,8 +134,10 @@ for epoch in range(epochs):
 
         losses.append(loss.detach().cpu().item())
 
+    #在验证集上验证
     hits = []
-    for index, data in enumerate(validloader):
+    hits_n = 10
+    for data in validloader:
         user, pos, neg = data
         pos = pos.unsqueeze(1)
         all_data = torch.cat([pos, neg], dim=-1)
@@ -145,13 +145,13 @@ for epoch in range(epochs):
                                all_data.to(device)).detach().cpu()
 
         for batch in output:
-            if 0 not in (-batch).argsort()[:10]:
+            if 0 not in (-batch).argsort()[:hits_n]:
                 hits.append(0)
             else:
                 hits.append(1)
-    print('Epoch {} finished, average loss {}, hits@10 {}'.format(
+    print('Epoch {} finished, average loss {}, hits@{} {}'.format(
         epoch,
-        sum(losses) / len(losses),
+        sum(losses) / len(losses), hits_n,
         sum(hits) / len(hits)))
     loss_for_plot.append(sum(losses) / len(losses))
     hits_for_plot.append(sum(hits) / len(hits))
@@ -162,6 +162,17 @@ for epoch in range(epochs):
     loss_for_plot_path = config.loss_for_plot_path
     torch.save(model.state_dict(),
                model_path + str(epoch + config.load_model_epoch + 1))
+
+    hits_for_plot_past = []
+    loss_for_plot_past = []
+    if config.is_load_model == True:
+        with open(hits_for_plot_path, "rb") as fp:
+            hits_for_plot_past = pickle.load(fp)
+        with open(loss_for_plot_path, "rb") as fp:
+            loss_for_plot_past = pickle.load(fp)
+    #跟之前的历史数据拼起来，再存储
+    hits_for_plot_past += hits_for_plot
+    loss_for_plot_past += loss_for_plot
     with open(hits_for_plot_path, "wb") as fp:
         pickle.dump(hits_for_plot, fp)
     with open(loss_for_plot_path, "wb") as fp:

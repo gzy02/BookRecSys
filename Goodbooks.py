@@ -1,15 +1,17 @@
+# 1.数据准备
+#1.1 数据说明
+#1.2 数据预处理
+
+#
+# 1.1 加载数据
+#观察样本数量和稀疏度。
+
 import random
 import tqdm
 import torch
 from torch.utils.data import Dataset, DataLoader
 
 
-# 1.2数据预处理
-# 构建Dataset类
-# 构建负样本
-# 划分测试集与验证集
-# 构建对应的Dataloader
-#
 class Goodbooks(Dataset):
 
     def __init__(self, df, user_book_map, mode='training', negs=99):
@@ -29,10 +31,11 @@ class Goodbooks(Dataset):
         if self.mode == 'training':
             for user, items in tqdm.tqdm(self.user_book_map.items()):
                 for item in items[:-1]:
-                    self.Xs.append((user, item, 1))
+                    self.Xs.append((user, item, 1))  #默认评分是1
                     for _ in range(3):
                         while True:
-                            neg_sample = random.randint(0, self.book_nums - 1)
+                            neg_sample = random.randint(0, self.book_nums -
+                                                        1)  #随机的label为假的数据
                             if neg_sample not in self.user_book_map[user]:
                                 self.Xs.append((user, neg_sample, 0))
                                 break
@@ -48,9 +51,8 @@ class Goodbooks(Dataset):
         if self.mode == 'training':
             user_id, book_id, label = self.Xs[index]
             return user_id, book_id, label
-        elif self.mode == 'validation':
+        elif self.mode == 'validation':  #没买过的作为验证集
             user_id, book_id = self.Xs[index]
-
             negs = list(
                 random.sample(list(
                     set(range(self.book_nums)) -
