@@ -1,5 +1,6 @@
 import torch
 import torch.nn
+from summary import summary
 
 
 class NCFModel(torch.nn.Module):
@@ -79,3 +80,27 @@ class NCFModel(torch.nn.Module):
             self.output_layer(torch.cat([gmf_output, mlp_output],
                                         dim=-1))).squeeze(-1)
         return output
+
+    def my_predict(self, user, item):
+        user_gmf_embedding = self.gmf_user_embedding(user)
+        item_gmf_embedding = self.gmf_item_embedding(item)
+
+        user_mlp_embedding = self.mlp_user_embedding(user)
+        item_mlp_embedding = self.mlp_item_embedding(item)
+
+        gmf_output = user_gmf_embedding * item_gmf_embedding
+
+        mlp_input = torch.cat([user_mlp_embedding, item_mlp_embedding], dim=-1)
+        mlp_output = self.mlp_layers(mlp_input)
+
+        return self.output_layer(torch.cat([gmf_output, mlp_output], dim=-1))
+
+import config
+
+if __name__ == "__main__":
+    net = NCFModel(
+        config.hidden_dim,
+        53423,
+        10000
+    )
+    summary(net, input_size=(2, 1))

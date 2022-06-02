@@ -16,10 +16,10 @@ traindataset_path = config.traindataset_path
 
 with open(traindataset_path, "rb") as fp:
     traindataset = pickle.load(fp)
-
+model_path = "./results/model.pth9"
 model = NCFModel(config.hidden_dim, traindataset.user_nums,
                  traindataset.book_nums)
-model.load_state_dict(torch.load(config.model_path))  # 导入网络的参数
+model.load_state_dict(torch.load(model_path))  # 导入网络的参数
 
 df = pd.read_csv(config.test_data_path)
 user_for_test = df['user_id'].tolist()
@@ -32,7 +32,7 @@ def chunks(l, n):
         yield l[i:i + n]
 
 
-BATCH_SIZE = 512
+BATCH_SIZE = 1
 f = open(config.submit_data_path, 'w', encoding='utf-8')
 f.write("user_id,item_id\n")
 for user_id in user_for_test:
