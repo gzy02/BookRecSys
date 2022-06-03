@@ -109,6 +109,7 @@ if config.is_load_model:  #如果导入已经训练了的模型
 optimizer = torch.optim.Adam(model.parameters(),
                              lr=learning_rate,
                              weight_decay=weight_decay)
+
 crit = torch.nn.BCELoss()  #损失函数：BCELoss
 
 loss_for_plot = []
