@@ -20,7 +20,7 @@ dropout = config.dropout
 weight_decay = config.weight_decay
 learning_rate = config.learning_rate
 
-device = torch.device('cuda:0') if torch.cuda.is_available() else torch.device(
+device = torch.device('cuda') if torch.cuda.is_available() else torch.device(
     'cpu')
 print(device)
 
@@ -91,10 +91,6 @@ validloader = DataLoader(validdataset,
                          num_workers=0)
 
 print("Load dataset success")
-print("Train dataset user_nums:", traindataset.user_nums)
-print("Train dataset book_nums:", traindataset.book_nums)
-print("Valid dataset user_nums:", validdataset.user_nums)
-print("Valid dataset book_nums:", validdataset.book_nums)
 
 # %%
 #模型训练&评估

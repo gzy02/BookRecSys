@@ -11,11 +11,11 @@ model_path = './models/model.pth'
 
 BATCH_SIZE = 512
 hidden_dim = 16
-epochs = 40
-weight_decay = 1e-5
+epochs = 50
+weight_decay = 0
+dropout = 0
 mlp_layer_num = 4
-dropout = 0.5
-learning_rate = 1e-3
+learning_rate = 2e-3
 
 is_load_model = False
 load_model_epoch = 0
