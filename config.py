@@ -19,7 +19,7 @@ learning_rate = 2e-3
 
 is_load_model = False
 load_model_epoch = 0
-load_model_path = f'./results/model.pth{load_model_epoch}'
+load_model_path = f'./models/model.pth{load_model_epoch}'
 
 if is_load_model == False:
     load_model_epoch = 0

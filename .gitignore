@@ -131,6 +131,5 @@ dmypy.json
 # vsc
 .vscode/
 # model
-*.h5
 *.pkl
 *.pth*

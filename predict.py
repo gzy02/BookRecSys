@@ -52,7 +52,7 @@ def main(it: int):
         user_visited_items = traindataset.user_book_map[user_id]
         items_for_predict = list(
             set(range(traindataset.book_nums)) - set(user_visited_items))
-        #items_for_predict = np.array(items_for_predict).reshape(1, -1)
+
         results = []
 
         for batch in chunks(items_for_predict, BATCH_SIZE):
