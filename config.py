@@ -9,12 +9,12 @@ train_data_path = './datasets/train_dataset.csv'
 test_data_path = './datasets/test_dataset.csv'
 model_path = './models/model.pth'
 
-BATCH_SIZE = 512
-hidden_dim = 16
+BATCH_SIZE = 2048
+hidden_dim = 24
 epochs = 50
 weight_decay = 0
-dropout = 0
-mlp_layer_num = 4
+dropout = 0.5
+mlp_layer_num = 6
 learning_rate = 2e-3
 
 is_load_model = False
