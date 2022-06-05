@@ -2,13 +2,10 @@
 #加载测试数据
 #生成提交文件
 
-import numpy as np
 import pandas as pd
 import pickle
 import config
-import os
 import torch
-
 from NCFModel import NCFModel
 
 device = torch.device('cuda') if torch.cuda.is_available() else torch.device(
@@ -83,4 +80,4 @@ def main(it: int):
 
 
 if __name__ == "__main__":
-    main(30)
+    main(26)
