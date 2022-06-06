@@ -1,4 +1,4 @@
-use_fake_data = True
+use_fake_data = False#不使用添加了fake label的数据
 
 BATCH_SIZE = 512
 hidden_dim = 24
@@ -23,7 +23,7 @@ submit_data_path = './submit/submission.csv'
 train_data_path = './datasets/train_dataset.csv'
 test_data_path = './datasets/test_dataset.csv'
 
-if use_fake_data:
+if use_fake_data==False:
     hits_for_plot_path = "./pkl/no_fake_hits_for_plot.pkl"
     loss_for_plot_path = "./pkl/no_fake_loss_for_plot.pkl"
     traindataset_path = "./pkl/traindataset_no_fake.pkl"

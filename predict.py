@@ -17,17 +17,20 @@ traindataset_path = config.traindataset_path
 with open(traindataset_path, "rb") as fp:
     traindataset = pickle.load(fp)
 
-use_fake_data = False
-use_ncf_model = False
-if use_ncf_model:
+use_fake_data = config.use_fake_data
+if config.use_ncf:
     model = NCFModel(config.hidden_dim,
                      traindataset.user_nums,
                      traindataset.book_nums,
                      mlp_layer_num=config.mlp_layer_num,
                      dropout=0)  #dropout
-else:
+    model_name = "ncf"
+elif config.use_mf:
     model = MFModel(config.hidden_dim, traindataset.user_nums,
                     traindataset.book_nums)
+    model_name = "mf"
+else:
+    model = None
 
 df = pd.read_csv(config.test_data_path)
 user_for_test = df['user_id'].tolist()
@@ -42,8 +45,8 @@ def chunks(l, n):
 
 def main(it: int):
 
-    model_path = f"./models/model.pth{it}"
-    submission_path = f"./submit/submit{it}.csv"
+    model_path = config.model_path + str(it)
+    submission_path = f"./submit/{model_name}_{it}.csv"
     state_dict = torch.load(model_path, map_location=device)
     model.load_state_dict(state_dict, strict=False)
     model.to(device)
@@ -85,4 +88,4 @@ def main(it: int):
 
 
 if __name__ == "__main__":
-    main(14)
+    main(134)
