@@ -7,6 +7,7 @@ import heapq
 import config
 import torch
 from NCFModel import NCFModel
+from MFModel import MFModel
 
 train = pd.read_csv('./datasets/train_dataset.csv')
 data = train.copy()
@@ -95,11 +96,20 @@ print(device)
 traindataset_path = config.traindataset_path
 with open(traindataset_path, "rb") as fp:
     traindataset = pickle.load(fp)
-model = NCFModel(config.hidden_dim,
-                 traindataset.user_nums,
-                 traindataset.book_nums,
-                 mlp_layer_num=config.mlp_layer_num,
-                 dropout=0)  #dropout
+
+use_ncf_model = False
+use_mf_model = True
+if use_ncf_model:
+    model = NCFModel(config.hidden_dim,
+                     traindataset.user_nums,
+                     traindataset.book_nums,
+                     mlp_layer_num=config.mlp_layer_num,
+                     dropout=0)  #dropout
+elif use_mf_model:
+    model = MFModel(config.hidden_dim, traindataset.user_nums,
+                    traindataset.book_nums)
+else:
+    model = None
 
 BATCH_SIZE = 512
 
@@ -115,12 +125,11 @@ user_lst = test['user_id'].tolist()
 # 找到最相似的K个item， 最终推荐n个给用户
 k = 5
 n = 10
-use_ncf_model = True
 
 
 def main(it: int):
 
-    model_path = f"./models/model.pth{it}"
+    model_path = f"./models/model.pth{it}"  #使用fake_data辅助训练的模型
     state_dict = torch.load(model_path, map_location=device)
     model.load_state_dict(state_dict, strict=False)
     model.to(device)
@@ -181,4 +190,4 @@ def main(it: int):
 
 
 if __name__ == "__main__":
-    main(26)
+    main(14)

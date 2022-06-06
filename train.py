@@ -98,13 +98,20 @@ print("Load dataset success")
 #训练模型，固定步数会计算准确率
 #模型保存
 #可视化训练过程，对比训练集和验证集的准确率
-
+from MFModel import MFModel
 from NCFModel import NCFModel
-
-model = NCFModel(hidden_dim, traindataset.user_nums, traindataset.book_nums,
-                 mlp_layer_num, dropout).to(device)
-if config.is_load_model:  #如果导入已经训练了的模型
-    model.load_state_dict(torch.load(config.load_model_path))
+if config.use_ncf:
+    model = NCFModel(hidden_dim, traindataset.user_nums,
+                     traindataset.book_nums, mlp_layer_num, dropout).to(device)
+    if config.is_load_model:  #如果导入已经训练了的模型
+        model.load_state_dict(torch.load(config.load_model_path))
+elif config.use_mf:
+    model = MFModel(hidden_dim, traindataset.user_nums,
+                    traindataset.book_nums).to(device)
+    if config.is_load_model:  #如果导入已经训练了的模型
+        model.load_state_dict(torch.load(config.load_model_path))
+else:
+    model = None
 
 optimizer = torch.optim.Adam(model.parameters(),
                              lr=learning_rate,
@@ -116,6 +123,7 @@ loss_for_plot = []
 hits_for_plot = []
 
 for epoch in range(epochs):
+
     #在训练集上训练
     losses = []
     for data in trainloader:
@@ -146,6 +154,7 @@ for epoch in range(epochs):
                 hits.append(0)
             else:
                 hits.append(1)
+
     print('Epoch {} finished, average loss {}, hits@{} {}'.format(
         epoch,
         sum(losses) / len(losses), hits_n,
@@ -171,6 +180,6 @@ for epoch in range(epochs):
     hits_for_plot_past += hits_for_plot
     loss_for_plot_past += loss_for_plot
     with open(hits_for_plot_path, "wb") as fp:
-        pickle.dump(hits_for_plot, fp)
+        pickle.dump(hits_for_plot_past, fp)
     with open(loss_for_plot_path, "wb") as fp:
-        pickle.dump(loss_for_plot, fp)
+        pickle.dump(hits_for_plot_past, fp)

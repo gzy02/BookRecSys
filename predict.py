@@ -7,6 +7,8 @@ import pickle
 import config
 import torch
 from NCFModel import NCFModel
+from MFModel import MFModel
+import heapq
 
 device = torch.device('cuda') if torch.cuda.is_available() else torch.device(
     'cpu')
@@ -14,11 +16,18 @@ print(device)
 traindataset_path = config.traindataset_path
 with open(traindataset_path, "rb") as fp:
     traindataset = pickle.load(fp)
-model = NCFModel(config.hidden_dim,
-                 traindataset.user_nums,
-                 traindataset.book_nums,
-                 mlp_layer_num=config.mlp_layer_num,
-                 dropout=0)  #dropout
+
+use_fake_data = False
+use_ncf_model = False
+if use_ncf_model:
+    model = NCFModel(config.hidden_dim,
+                     traindataset.user_nums,
+                     traindataset.book_nums,
+                     mlp_layer_num=config.mlp_layer_num,
+                     dropout=0)  #dropout
+else:
+    model = MFModel(config.hidden_dim, traindataset.user_nums,
+                    traindataset.book_nums)
 
 df = pd.read_csv(config.test_data_path)
 user_for_test = df['user_id'].tolist()
@@ -29,9 +38,6 @@ BATCH_SIZE = 512
 def chunks(l, n):
     for i in range(0, len(l), n):
         yield l[i:i + n]
-
-
-import heapq
 
 
 def main(it: int):
@@ -51,7 +57,6 @@ def main(it: int):
             set(range(traindataset.book_nums)) - set(user_visited_items))
 
         results = []
-
         for batch in chunks(items_for_predict, BATCH_SIZE):
             user = torch.full([len(batch)],
                               user_id).to(dtype=torch.int64).to(device)
@@ -80,4 +85,4 @@ def main(it: int):
 
 
 if __name__ == "__main__":
-    main(26)
+    main(14)
