@@ -101,7 +101,7 @@ for i in sim_list:
 #导入trainset
 with open(trainset_path, "rb") as fp:
     trainSet = pickle.load(fp)
-with open(item_sim_matrix_list_path, "rb") as fp:
+with open(item_sim_matrix_list_path.format(""), "rb") as fp:
     item_sim_matrix = pickle.load(fp)
 
 test = pd.read_csv('./datasets/test_dataset.csv')
