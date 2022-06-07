@@ -7,15 +7,27 @@ import math
 from operator import itemgetter
 import heapq
 
-train = pd.read_csv('./datasets/train_dataset.csv')
+train = pd.read_csv('../datasets/train_dataset.csv')
 
 data = train.copy()
 data.pivot(index='user_id', columns='item_id')  # 这样会发现有大量的稀疏， 所以才会用字典进行存放
 trainSet = {}
-item_sim_matrix_path = "./pkl/matrix.pkl"
+sim_list = ["E_dis","P_cov","J_sim"]
+item_sim_matrix_path = "./pkl/matrix{}.pkl"
 trainset_path = "./pkl/trainset.pkl"
-item_sim_matrix_list_path = "./pkl/matrix_list.pkl"
+item_sim_matrix_list_path = "./pkl/matrix_list{}.pkl"
 
+def similar(count:int,popular_A:int,popular_B:int,length:int,para:str)->float:
+    if para == "E_dis":
+        result = 1/math.sqrt(popular_A+popular_B-2*count)
+    elif para == "P_cov":
+        result = (length*count-popular_A*popular_B)/\
+            math.sqrt(popular_A*popular_B*(length-popular_A)*(length-popular_B))
+    elif para == "J_sim":
+        result = count/(popular_A+popular_B-count)
+    else:
+        result = count/math.sqrt(popular_A*popular_B)
+    return result
 
 def Generate_trainSet():
     for ele in data.itertuples():
@@ -26,7 +38,7 @@ def Generate_trainSet():
         pickle.dump(trainSet, fp)
 
 
-def Generate_matrix():
+def Generate_matrix(para:str):
     item_popular = {}
     for user, items in trainSet.items():
         for item in items:
@@ -57,31 +69,34 @@ def Generate_matrix():
             if item_popular[m1] == 0 or item_popular[m2] == 0:
                 item_sim_matrix[m1][m2] = 0
             else:
-                item_sim_matrix[m1][m2] = count / math.sqrt(
-                    item_popular[m1] * item_popular[m2])
+                item_sim_matrix[m1][m2] = similar(
+                count,item_popular[m1],item_popular[m2],len(trainSet),para=para)
+                #count / math.sqrt(
+                    #item_popular[m1] * item_popular[m2])
 
     with open(item_sim_matrix_path, "wb") as fp:
         pickle.dump(item_sim_matrix, fp)
 
 
-def generate_matrix_list(item_sim_matrix):
+def generate_matrix_list(item_sim_matrix,para:str):
     for key in item_sim_matrix:
         test_list_key = sorted(item_sim_matrix[key].items(),
                                key=itemgetter(1),
                                reverse=True)
         item_sim_matrix[key] = test_list_key
-    with open(item_sim_matrix_list_path, "wb") as fp:
+    with open(item_sim_matrix_list_path.format("_"+para), "wb") as fp:
         pickle.dump(item_sim_matrix, fp)
 
 
 if not os.path.exists(trainset_path):
     Generate_trainSet()
-if not os.path.exists(item_sim_matrix_path):
-    Generate_matrix()
-    #导入matrix
-    with open(item_sim_matrix_path, "rb") as fp:
-        item_sim_matrix = pickle.load(fp)
-    generate_matrix_list(item_sim_matrix)
+for i in sim_list:
+    if not os.path.exists(item_sim_matrix_path.format("_"+i)):
+        Generate_matrix(i)
+        #导入matrix
+        with open(item_sim_matrix_path.format("_"+i), "rb") as fp:
+            item_sim_matrix = pickle.load(fp)
+        generate_matrix_list(item_sim_matrix,i)
 
 #导入trainset
 with open(trainset_path, "rb") as fp:
