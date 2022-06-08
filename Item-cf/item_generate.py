@@ -23,7 +23,7 @@ item_sim_matrix_count_path = "../pkl/matrix_count.pkl"
 def similar(count: int, popular_A: int, popular_B: int, length: int,
             para: str) -> float:
     if para == "E_dis":
-        result = 1 / math.sqrt(popular_A + popular_B - 2 * count)
+        result = 1 / (1 + math.sqrt(popular_A + popular_B - 2 * count))
     elif para == "P_cov":
         result = (length*count-popular_A*popular_B)/\
             math.sqrt(popular_A*popular_B*(length-popular_A)*(length-popular_B))
@@ -73,7 +73,7 @@ def Generate_matrix(para: str):
     print(f'Build user co-rated items matrix_{para} ...')
     item_sim_matrix = copy.deepcopy(item_sim_matrix_count)
 
-    # 计算电影之间的相似性
+    # 计算item之间的相似性
     for m1, related_items in item_sim_matrix.items():
         for m2, count in related_items.items():
             # 这里item的用户数为0处理

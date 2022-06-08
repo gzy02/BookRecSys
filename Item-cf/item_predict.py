@@ -14,7 +14,7 @@ with open(trainset_path, "rb") as fp:
     trainSet = pickle.load(fp)
 
 # 对每个用户看过的item, 找到最相似的K个item, 最终推荐N个给用户
-k = 5
+k = 2
 n = 10
 
 for name in sim_list:
@@ -38,7 +38,7 @@ for name in sim_list:
                         # 计算用户user对select_item的偏好值，初始化该值为0
                         item_list.setdefault(select_item[0], 0)
                         #通过与其相似物品对物品select_item的偏好值相乘并相加。
-                        #排名的依据 : 推荐书籍与该已看书籍的相似度(累计) * NCF模型对该书籍的评分
+                        #排名的依据 : 推荐书籍与该已看书籍的相似度(累计) * 对该书籍的评分
                         item_list[select_item[0]] += select_item[1]
                         tep += 1
                         if tep == k:
