@@ -105,9 +105,11 @@ if use_ncf_model:
                      traindataset.book_nums,
                      mlp_layer_num=config.mlp_layer_num,
                      dropout=0)  #dropout
+    model_name = "ncf"
 elif use_mf_model:
     model = MFModel(config.hidden_dim, traindataset.user_nums,
                     traindataset.book_nums)
+    model_name = "mf"
 else:
     model = None
 
@@ -129,12 +131,12 @@ n = 10
 
 def main(it: int):
 
-    model_path = f"./models/model.pth{it}"  #使用fake_data辅助训练的模型
+    model_path = config.model_path + str(it)
     state_dict = torch.load(model_path, map_location=device)
     model.load_state_dict(state_dict, strict=False)
     model.to(device)
 
-    with open(f'./submit/Item_CF_NCF={it}_K={k}.csv', "w") as fp:
+    with open(f'./submit/Item_CF_{model_name}_{it}_K={k}.csv', "w") as fp:
         fp.write("user_id,item_id\n")
         for user_id in user_lst:
             item_list = {}  #待选的item集
@@ -157,7 +159,7 @@ def main(it: int):
                             break
             item_input_list = list(item_list.keys())
 
-            if use_ncf_model:  #使用ncf模型进行精排
+            if use_ncf_model or use_mf_model:  #使用模型进行精排
                 user_input = torch.full(
                     [len(item_input_list)],
                     user_id).to(dtype=torch.int64).to(device)
@@ -190,4 +192,4 @@ def main(it: int):
 
 
 if __name__ == "__main__":
-    main(14)
+    main(16)

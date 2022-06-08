@@ -100,14 +100,17 @@ print("Load dataset success")
 #可视化训练过程，对比训练集和验证集的准确率
 from MFModel import MFModel
 from NCFModel import NCFModel
+from MF import MF
 if config.use_ncf:
     model = NCFModel(hidden_dim, traindataset.user_nums,
                      traindataset.book_nums, mlp_layer_num, dropout).to(device)
     if config.is_load_model:  #如果导入已经训练了的模型
         model.load_state_dict(torch.load(config.load_model_path))
 elif config.use_mf:
-    model = MFModel(hidden_dim, traindataset.user_nums,
-                    traindataset.book_nums).to(device)
+    #model = MFModel(hidden_dim, traindataset.user_nums,
+    #                traindataset.book_nums).to(device)
+    model = MF(hidden_dim, traindataset.user_nums,
+               traindataset.book_nums).to(device)
     if config.is_load_model:  #如果导入已经训练了的模型
         model.load_state_dict(torch.load(config.load_model_path))
 else:

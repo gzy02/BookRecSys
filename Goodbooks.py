@@ -34,13 +34,13 @@ class Goodbooks(Dataset):
                     self.Xs.append((user, item, 1))  #默认评分是1
 
                     #或许不应该加入假的数据，没看过的不一定代表不喜欢
-                    #for _ in range(3):
-                    #    while True:
-                    #        neg_sample = random.randint(0, self.book_nums -
-                    #                                    1)  #随机的label为假的数据
-                    #        if neg_sample not in self.user_book_map[user]:
-                    #            self.Xs.append((user, neg_sample, 0))
-                    #            break
+                    for _ in range(1):  # 1:1
+                        while True:
+                            neg_sample = random.randint(0, self.book_nums - 1)
+                            #随机的label为假的数据
+                            if neg_sample not in self.user_book_map[user]:
+                                self.Xs.append((user, neg_sample, 0))  #设为0
+                                break
 
         elif self.mode == 'validation':
             for user, items in tqdm.tqdm(self.user_book_map.items()):

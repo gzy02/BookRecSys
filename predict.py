@@ -88,4 +88,4 @@ def main(it: int):
 
 
 if __name__ == "__main__":
-    main(134)
+    main(43)
