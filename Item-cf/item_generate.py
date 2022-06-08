@@ -5,19 +5,19 @@ import math
 from operator import itemgetter
 import copy
 
-data = pd.read_csv('./datasets/train_dataset.csv')
+data = pd.read_csv('../datasets/train_dataset.csv')
 data.pivot(index='user_id', columns='item_id')  # 这样会发现有大量的稀疏， 所以才会用字典进行存放
 trainSet = {}
 item_popular = {}
 item_sim_matrix_count = {}
 
 sim_list = ["E_dis", "P_cov", "J_sim"]
-item_sim_matrix_path = "./pkl/matrix{}.pkl"
-item_sim_matrix_list_path = "./pkl/matrix_list{}.pkl"
+item_sim_matrix_path = "../pkl/matrix{}.pkl"
+item_sim_matrix_list_path = "../pkl/matrix_list{}.pkl"
 
-trainset_path = "./pkl/trainset.pkl"
-item_popular_path = "./pkl/item_popular.pkl"
-item_sim_matrix_count_path = "./pkl/matrix_count.pkl"
+trainset_path = "../pkl/trainset.pkl"
+item_popular_path = "../pkl/item_popular.pkl"
+item_sim_matrix_count_path = "../pkl/matrix_count.pkl"
 
 
 def similar(count: int, popular_A: int, popular_B: int, length: int,

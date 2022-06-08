@@ -3,10 +3,10 @@ import pickle
 import heapq
 
 sim_list = ["E_dis", "P_cov", "J_sim", "cos"]
-trainset_path = "./pkl/trainset.pkl"
-item_sim_matrix_list_path = "./pkl/matrix_list_{}.pkl"
+trainset_path = "../pkl/trainset.pkl"
+item_sim_matrix_list_path = "../pkl/matrix_list_{}.pkl"
 
-test = pd.read_csv('./datasets/test_dataset.csv')
+test = pd.read_csv('../datasets/test_dataset.csv')
 user_lst = test['user_id'].tolist()
 
 #导入trainset
@@ -14,7 +14,7 @@ with open(trainset_path, "rb") as fp:
     trainSet = pickle.load(fp)
 
 # 对每个用户看过的item, 找到最相似的K个item, 最终推荐N个给用户
-k = 1
+k = 5
 n = 10
 
 for name in sim_list:
@@ -22,7 +22,7 @@ for name in sim_list:
     with open(item_sim_matrix_list_path.format(name), "rb") as fp:
         item_sim_matrix_list = pickle.load(fp)
 
-    with open(f'./submit/Item_CF_{name}_K={k}.csv', "w") as fp:
+    with open(f'../submit/Item_CF_{name}_K={k}.csv', "w") as fp:
         fp.write("user_id,item_id\n")
         for user_id in user_lst:
             item_list = {}  #待选的item集

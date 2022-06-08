@@ -9,7 +9,7 @@
 import random
 import tqdm
 import torch
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset
 
 
 class Goodbooks(Dataset):
