@@ -1,16 +1,17 @@
 BATCH_SIZE = 512
 hidden_dim = 24
-epochs = 50
+epochs = 100
 weight_decay = 0
-dropout = 0.5
+dropout = 0
 mlp_layer_num = 6
-learning_rate = 5e-4
+learning_rate = 0.001
 
 use_ncf = False
-use_mf = True
+use_mf = False
+use_gcn = True
 
 is_load_model = False
-load_model_epoch = 0
+load_model_epoch = 400
 
 if is_load_model == False:
     load_model_epoch = 0

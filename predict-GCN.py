@@ -6,9 +6,9 @@ import pandas as pd
 import pickle
 import config
 import torch
-from NCFModel import NCFModel
-from MFModel import MFModel
+from LightGCN import LightGCN
 import heapq
+from Goodbooks import get_adj_mat
 
 device = torch.device('cuda') if torch.cuda.is_available() else torch.device(
     'cpu')
@@ -17,17 +17,13 @@ traindataset_path = config.traindataset_path
 with open(traindataset_path, "rb") as fp:
     traindataset = pickle.load(fp)
 
-if config.use_ncf:
-    model = NCFModel(config.hidden_dim,
-                     traindataset.user_nums,
-                     traindataset.book_nums,
-                     mlp_layer_num=config.mlp_layer_num,
-                     dropout=0)  #dropout
-    model_name = "ncf"
-elif config.use_mf:
-    model = MFModel(config.hidden_dim, traindataset.user_nums,
-                    traindataset.book_nums)
-    model_name = "mf"
+if config.use_gcn:
+    plain_adj, norm_adj, mean_adj = get_adj_mat(traindataset.user_nums,
+                                                traindataset.book_nums,
+                                                traindataset.user_book_map)
+    model = LightGCN(traindataset.user_nums, traindataset.book_nums,
+                     norm_adj).to(device)
+    model_name = "gcn"
 else:
     model = None
 
@@ -52,28 +48,18 @@ def main(it: int):
 
     f = open(submission_path, 'w', encoding='utf-8')
     f.write("user_id,item_id\n")
+
+    results = model.getUsersRating(user_for_test)
     for user_id in user_for_test:
         #将用户已经交互过的物品排除
+        predict_item_id = []
         user_visited_items = traindataset.user_book_map[user_id]
         items_for_predict = list(
             set(range(traindataset.book_nums)) - set(user_visited_items))
-
-        results = []
-        for batch in chunks(items_for_predict, BATCH_SIZE):
-            user = torch.full([len(batch)],
-                              user_id).to(dtype=torch.int64).to(device)
-            item = torch.Tensor(batch).to(dtype=torch.int64).to(device)
-            result = model.my_predict(user, item).cpu()
-            for i in range(len(batch)):
-                results.append((batch[i], result[i]))
-
-        predict_item_id = []
-        largest_10 = heapq.nlargest(10, results, key=lambda x: x[1])
-        for i in largest_10:
-            predict_item_id.append(i[0])
-        #results.sort(key=lambda x: x[1], reverse=True)
-        #for i in range(10):
-        #    predict_item_id.append(results[i][0])
+        sorted_list=list(enumerate(results[user_id])).sort(key=lambda x:x[1],reverse=True)
+        for i in sorted_list:
+            if i[0] in items_for_predict:
+                predict_item_id.append(i[0])
 
         tep_string = ""
         for x in predict_item_id:

@@ -15,7 +15,7 @@ data.pivot(index='user_id', columns='item_id')  # 这样会发现有大量的稀
 trainSet = {}
 item_sim_matrix_path = "./pkl/matrix.pkl"
 trainset_path = "./pkl/trainset.pkl"
-item_sim_matrix_list_path = "./pkl/matrix_list.pkl"
+item_sim_matrix_list_path = "./pkl/matrix_list_P_cov.pkl"
 
 
 def Generate_trainSet():
@@ -125,7 +125,7 @@ test = pd.read_csv(config.test_data_path)
 user_lst = test['user_id'].tolist()
 
 # 找到最相似的K个item， 最终推荐n个给用户
-k = 5
+k = 2
 n = 10
 
 
@@ -192,4 +192,4 @@ def main(it: int):
 
 
 if __name__ == "__main__":
-    main(16)
+    main(300)

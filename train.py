@@ -100,22 +100,43 @@ print("Load dataset success")
 #可视化训练过程，对比训练集和验证集的准确率
 from MFModel import MFModel
 from NCFModel import NCFModel
+from Goodbooks import get_adj_mat
+from LightGCN import LightGCN
 if config.use_ncf:
     model = NCFModel(hidden_dim, traindataset.user_nums,
                      traindataset.book_nums, mlp_layer_num, dropout).to(device)
     if config.is_load_model:  #如果导入已经训练了的模型
         model.load_state_dict(torch.load(config.load_model_path))
+    optimizer = torch.optim.SGD(model.parameters(),
+                                lr=learning_rate,
+                                weight_decay=weight_decay)
 elif config.use_mf:
     model = MFModel(hidden_dim, traindataset.user_nums,
                     traindataset.book_nums).to(device)
     if config.is_load_model:  #如果导入已经训练了的模型
         model.load_state_dict(torch.load(config.load_model_path))
+    #optimizer = torch.optim.Adam(model.parameters(),
+    #                             lr=learning_rate,
+    #                             weight_decay=weight_decay)
+    optimizer = torch.optim.SGD(model.parameters(),
+                                lr=learning_rate,
+                                weight_decay=weight_decay)
+elif config.use_gcn:
+    plain_adj, norm_adj, mean_adj = get_adj_mat(traindataset.user_nums,
+                                                traindataset.book_nums,
+                                                user_book_map)
+    model = LightGCN(traindataset.user_nums, traindataset.book_nums,
+                     norm_adj).to(device)
+    if config.is_load_model:  #如果导入已经训练了的模型
+        model.load_state_dict(torch.load(config.load_model_path))
+    optimizer = torch.optim.Adam(model.parameters(),
+                                 lr=learning_rate,
+                                 weight_decay=weight_decay)
+    #optimizer = torch.optim.SGD(model.parameters(),
+    #                            lr=learning_rate,
+    #                            weight_decay=weight_decay)
 else:
     model = None
-
-optimizer = torch.optim.Adam(model.parameters(),
-                             lr=learning_rate,
-                             weight_decay=weight_decay)
 
 crit = torch.nn.BCELoss()  #损失函数：BCELoss
 
