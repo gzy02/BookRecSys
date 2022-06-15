@@ -117,7 +117,10 @@ item_count = len(trainSet)
 user_count = len(user_popular)
 print('Total item number = %d\nTotal user number = %d' %
       (item_count, user_count))
-
+max_item = -1
+for key, item in user_popular.items():
+    max_item = max(item, max_item)
+print("max items:", max_item)
 #导入sim_matrix_count
 if not os.path.exists(user_sim_matrix_count_path):
     Generate_matrix_count()
